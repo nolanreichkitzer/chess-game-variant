@@ -55,6 +55,9 @@ class ChessPiece:
         """Returns the name identifier of the chess piece"""
         return self._name
 
+    def legal_move(self, current_square, destination):
+        return True
+
 
 class Pawn(ChessPiece):
     """
@@ -374,7 +377,16 @@ class ChessVar:
         current_square = current_square.lower()
         destination = destination.lower()
 
+        if not self._chessboard[current_square]:
+            print("You didn't select a piece to move. Try a different move.")
+            return False
+
         if self._player_turn != self._chessboard[current_square].get_color():
+            print("You can't move the other player's piece. Try a different move.")
+            return False
+
+        if not self._chessboard[current_square].legal_move(current_square, destination):
+            print("That move isn't legal for this piece. Try a different move.")
             return False
 
         # Since the move is legal, make the move and change player_turn
@@ -385,6 +397,7 @@ class ChessVar:
         # See if the move was a winning move
 
         return True
+
 
 def main():
     game = ChessVar()

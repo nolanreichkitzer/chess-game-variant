@@ -43,6 +43,7 @@ class MyTestCase(unittest.TestCase):
     def test_make_move(self):
 
         game = ChessVar()
+        self.assertFalse(game.make_move('3a', '6a'))  # Try to move a piece from an empty square
         self.assertFalse(game.make_move('7a', '6a')) # White tries to move Black's piece
         game.make_move('2a', '3a')
         self.assertEqual(game.get_player_turn(),'BLACK')
