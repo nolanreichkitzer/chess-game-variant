@@ -11,10 +11,6 @@ class ChessPiece:
     ----------
     color : string
         Represents the color of the chess piece. Data member can either be 'WHITE' or 'BLACK'
-    location : string
-        Represents the current location of the chess piece on the chessboard
-    status : string
-        Represents the status of the chess piece. Data member is 'ACTIVE' or 'TAKEN'
     type : string
         Represents the type of ChessPiece. Initialized to None and is overwritten by subclasses
     name : string
@@ -24,28 +20,23 @@ class ChessPiece:
     -------
     get_color()
         Returns the color of the chess piece
-    get_status()
-        Returns the status of the chess piece
     get_type()
         Returns the type of chess piece
     get_name()
         Returns the name identifier of the chess piece
+    spaces_between_source_and_destination_clear(source, destination)
+        Determines if the spaces in between the source and destination squares are clear.
     """
 
-    def __init__(self, color, location):
+    def __init__(self, color, chess_var_object):
         self._color = color
-        self._location = location
-        self._status = 'ACTIVE'
+        self._chess_var_object = chess_var_object
         self._type = None
         self._name = None
 
     def get_color(self):
         """Returns the color of the chess piece"""
         return self._color
-
-    def get_status(self):
-        """Returns the status of the chess piece"""
-        return self._status
 
     def get_type(self):
         """Returns the type of chess piece"""
@@ -55,8 +46,82 @@ class ChessPiece:
         """Returns the name identifier of the chess piece"""
         return self._name
 
-    def legal_move(self, current_square, destination):
-        return True
+    def spaces_between_source_and_destination_clear(self, source, destination):
+        """
+        Determines if the spaces in between the source and destination squares are clear.
+
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the spaces are clear. False if any of the spaces are not clear.
+        """
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # Use ChessVar get_board method to return the chessboard dictionary to this class
+        chessboard = self._chess_var_object.get_board()
+
+        # Determine if there is a chess piece in between source square and destination square
+        # All chess pieces besides the Knight can not move through other pieces
+
+        # Vertical move forward (1 to 8)
+        if (source_column - destination_column) == 0 and (destination_row - source_row) > 0:
+            for row in range(1, destination_row - source_row):
+                if chessboard[chr(source_column) + str(source_row + row)]:
+                    return False
+            return True
+
+        # Vertical move backward (8 to 1)
+        if (source_column - destination_column) == 0 and (source_row - destination_row) > 0:
+            for row in range(1, source_row - destination_row):
+                if chessboard[chr(source_column) + str(source_row - row)]:
+                    return False
+            return True
+
+        # Horizontal move right (a to h)
+        if (source_row - destination_row) == 0 and (destination_column - source_column) > 0:
+            for column in range(1, destination_column - source_column):
+                if chessboard[chr(source_column + column) + str(source_row)]:
+                    return False
+            return True
+
+        # Horizontal move left (h to a)
+        if (source_row - destination_row) == 0 and (source_column - destination_column) > 0:
+            for column in range(1, source_column - destination_column):
+                if chessboard[chr(source_column - column) + str(source_row)]:
+                    return False
+            return True
+
+        # Diagonal move forward right (1 to 8) and (a to h)
+        if (destination_row - source_row) > 0 and (destination_column - source_column) > 0:
+            for square in range(1, destination_row - source_row):
+                if chessboard[chr(source_column + square) + str(source_row + square)]:
+                    return False
+            return True
+
+        # Diagonal move forward left (1 to 8) and (h to a)
+        if (destination_row - source_row) > 0 and (source_column - destination_column) > 0:
+            for square in range(1, destination_row - source_row):
+                if chessboard[chr(source_column - square) + str(source_row + square)]:
+                    return False
+            return True
+
+        # Diagonal move backward right (8 to 1) and (a to h)
+        if (source_row - destination_row) > 0 and (destination_column - source_column) > 0:
+            for square in range(1, source_row - destination_row):
+                if chessboard[chr(source_column + square) + str(source_row - square)]:
+                    return False
+            return True
+
+        # Diagonal move backward left (8 to 1) and (h to a)
+        if (source_row - destination_row) > 0 and (source_column - destination_column) > 0:
+            for square in range(1, source_row - destination_row):
+                if chessboard[chr(source_column - square) + str(source_row - square)]:
+                    return False
+            return True
 
 
 class Pawn(ChessPiece):
@@ -76,10 +141,45 @@ class Pawn(ChessPiece):
 
     """
 
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'PAWN'
         self._name = color[0] + self._type[0]
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # Use ChessVar get_board method to return the chessboard dictionary to this class
+        chessboard = self._chess_var_object.get_board()
+
+        # Determine legal moves for White pawn
+
+        if self._color == 'WHITE':
+
+            # White can only move from 2 to 8, and can move 2 spaces forward if source space is 2
+            if source_row == 2 and (destination_row - source_row) <= 2 and \
+                    (destination_column - source_column) == 0 and \
+                    self.spaces_between_source_and_destination_clear(source, destination):
+                return True
+
+            # Otherwise, Pawns can only move forward 1 space unless an enemy is occupying the intended space
+            elif (destination_row - source_row) == 1 and abs(destination_column - source_column) == 0 \
+                    and chessboard[destination] and chessboard[destination].get_color == 'BLACK':
+                return True
+
+            # Pawn can only move forward 1 space diagonally if it is capturing an enemy piece
+            elif (destination_row - source_row) == 1 and abs(destination_column - source_column) == 1 \
+                    and chessboard[destination] and chessboard[destination].get_color == 'BLACK':
+                return True
+
+
+
+        # Black pawn can only move from 7 to 1, and can move 2 spaces forward if source space is 7
 
 
 class Knight(ChessPiece):
@@ -99,10 +199,24 @@ class Knight(ChessPiece):
 
     """
 
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'KNIGHT'
         self._name = color[0] + 'N'
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+            return True
+        else:
+            return False
 
 
 class Bishop(ChessPiece):
@@ -122,10 +236,24 @@ class Bishop(ChessPiece):
 
     """
 
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'BISHOP'
         self._name = color[0] + self._type[0]
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+            return True
+        else:
+            return False
 
 
 class Rook(ChessPiece):
@@ -145,10 +273,24 @@ class Rook(ChessPiece):
 
     """
 
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'ROOK'
         self._name = color[0] + self._type[0]
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+            return True
+        else:
+            return False
 
 
 class Queen(ChessPiece):
@@ -167,11 +309,24 @@ class Queen(ChessPiece):
     -------
 
     """
-
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'QUEEN'
         self._name = color[0] + self._type[0]
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+            return True
+        else:
+            return False
 
 
 class King(ChessPiece):
@@ -191,10 +346,24 @@ class King(ChessPiece):
 
     """
 
-    def __init__(self, color, location):
-        super().__init__(color, location)
+    def __init__(self, color, chess_var_object):
+        super().__init__(color, chess_var_object)
         self._type = 'KING'
         self._name = color[0] + self._type[0]
+
+    def legal_move(self, source, destination):
+
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
+
+        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+            return True
+        else:
+            return False
 
 
 class ChessVar:
@@ -204,8 +373,12 @@ class ChessVar:
     Attributes
     ----------
     chessboard : dictionary
-        A dictionary representing the chessboard grid. Initialized to the starting state of a normal chess game using
+        A dictionary representing the chessboard grid. Keys are the chessboard grid squares, values are ChessPiece
+        objects occupying the squares. Dictionary is initialized to the starting state of a normal chess game using the
         set_board method
+    piece_inventory : dictionary
+        A dictionary representing the piece inventory with piece names as keys and piece counts as values.
+        Dictionary is initialized to empty dictionary and filled after the chessboard is set using the update_
     player_turn : string
         Represents who has the current turn. Data member will either be 'WHITE' or 'BLACK' and is initialized to 'WHITE'
     game_state : string
@@ -215,28 +388,36 @@ class ChessVar:
     Methods
     -------
     set_board()
-        Populates the chessboard data member with ChessPiece Objects
+        Populates the chessboard data member with ChessPiece Objects.
+    get_board()
+        Returns the chessboard dictionary
     display_board()
         Displays the current chessboard arrangement to the user
+    update_piece_inventory()
+        Updates the piece_inventory data member with current ChessPiece counts
+    display_piece_inventory():
+        Displays the piece_inventory dictionary to the user
     get_player_turn()
         Returns the player who has the current turn
     swap_player_turn()
         Switches current player_turn to the other player
     get_game_state()
         Returns the value of the game_state data member
-    white_wins()
-        Sets game_state data member to 'WHITE_WON'
-    black_wins()
-        Sets game_state data member to 'BLACK_WON'
+    current_player_wins()
+        Sets game_state data member to 'WHITE_WON' if it is white's turn or 'BLACK_WON' if it is black's turn
     forfeit(player)
-        Allows the player who has the current turn to forfeit the game
-    make_move(current_square, destination)
-        Takes a piece's current square and proposed destination as strings and moves the piece if it is a legal move
+        Sets game_state data member to 'BLACK_WON' if it is white's turn or 'WHITE_WON' if it is black's turn
+    make_move(source, destination)
+        Takes a piece's source square and proposed destination as strings and moves the piece if it is a legal move
+    make_move_and_display_board(source, destination):
+        Calls the make_move and display_board methods if the user wants to automatically display the board
     """
 
     def __init__(self):
         self._chessboard = {}
+        self._piece_inventory = {}
         self.set_board()
+        self.update_piece_inventory()
         self._player_turn = 'WHITE'
         self._game_state = 'UNFINISHED'
 
@@ -247,51 +428,55 @@ class ChessVar:
         columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         for row in range(8, 0, -1):
             for column in columns:
-                self._chessboard[str(row) + str(column)] = None
+                self._chessboard[str(column) + str(row)] = None
 
         # Generate Black Pawns
         for column in columns:
-            self._chessboard['7' + str(column)] = Pawn('BLACK', '7' + str(column))
+            self._chessboard[str(column) + '7'] = Pawn('BLACK', self)
 
         # Generate Black Knights
-        self._chessboard['8b'] = Knight('BLACK', '8b')
-        self._chessboard['8g'] = Knight('BLACK', '8g')
+        self._chessboard['b8'] = Knight('BLACK', self)
+        self._chessboard['g8'] = Knight('BLACK', self)
 
         # Generate Black Bishops
-        self._chessboard['8c'] = Bishop('BLACK', '8c')
-        self._chessboard['8f'] = Bishop('BLACK', '8f')
+        self._chessboard['c8'] = Bishop('BLACK', self)
+        self._chessboard['f8'] = Bishop('BLACK', self)
 
         # Generate Black Rooks
-        self._chessboard['8a'] = Rook('BLACK', '8a')
-        self._chessboard['8h'] = Rook('BLACK', '8h')
+        self._chessboard['a8'] = Rook('BLACK', self)
+        self._chessboard['h8'] = Rook('BLACK', self)
 
         # Generate Black Queen
-        self._chessboard['8d'] = Queen('BLACK', '8d')
+        self._chessboard['d8'] = Queen('BLACK', self)
 
         # Generate Black King
-        self._chessboard['8e'] = King('BLACK', '8e')
+        self._chessboard['e8'] = King('BLACK', self)
 
         # Generate White Pawns
         for column in columns:
-            self._chessboard['2' + str(column)] = Pawn('WHITE', '2' + str(column))
+            self._chessboard[str(column) + '2'] = Pawn('WHITE', self)
 
         # Generate White Knights
-        self._chessboard['1b'] = Knight('WHITE', '1b')
-        self._chessboard['1g'] = Knight('WHITE', '1g')
+        self._chessboard['b1'] = Knight('WHITE', self)
+        self._chessboard['g1'] = Knight('WHITE', self)
 
         # Generate White Bishops
-        self._chessboard['1c'] = Bishop('WHITE', '1c')
-        self._chessboard['1f'] = Bishop('WHITE', '1f')
+        self._chessboard['c1'] = Bishop('WHITE', self)
+        self._chessboard['f1'] = Bishop('WHITE', self)
 
         # Generate White Rooks
-        self._chessboard['1a'] = Rook('WHITE', '1a')
-        self._chessboard['1h'] = Rook('WHITE', '1h')
+        self._chessboard['a1'] = Rook('WHITE', self)
+        self._chessboard['h1'] = Rook('WHITE', self)
 
         # Generate White Queen
-        self._chessboard['1d'] = Queen('WHITE', '1d')
+        self._chessboard['d1'] = Queen('WHITE', self)
 
         # Generate White King
-        self._chessboard['1e'] = King('WHITE', '1e')
+        self._chessboard['e1'] = King('WHITE', self)
+
+    def get_board(self):
+        """Returns the chessboard dictionary"""
+        return self._chessboard
 
     def display_board(self):
         """Displays the current chessboard arrangement to the user"""
@@ -303,11 +488,12 @@ class ChessVar:
             print(' ' + column + '  ', end='')
         print('')
 
+        # Print one row at a time
         for row in range(8, 0, -1):
             print(str(row) + ' ', end='')
             for column in columns:
-                if self._chessboard[str(row) + str(column)]:
-                    print('[' + self._chessboard[str(row) + str(column)].get_name() + ']', end='')
+                if self._chessboard[str(column) + str(row)]:
+                    print('[' + self._chessboard[str(column) + str(row)].get_name() + ']', end='')
                 else:
                     print('[  ]', end='')
             print(' ' + str(row), end='')
@@ -318,6 +504,39 @@ class ChessVar:
         for column in columns:
             print(' ' + column + '  ', end='')
         print('\n')
+
+    def update_piece_inventory(self):
+        """Updates the piece_inventory data member with current ChessPiece counts"""
+
+        # If piece_inventory is empty, initialize key-value pairs with piece name as keys
+        if self._piece_inventory == {}:
+
+            name_list = []
+
+            # Generate list of piece names to use as keys
+            for piece in self._chessboard.values():
+                if piece and piece.get_name() not in name_list:
+                    name_list.append(piece.get_name())
+
+            # Sort the name list in alphabetical order
+            name_list.sort()
+
+            # Initialize each value in dictionary to 0
+            for name in name_list:
+                self._piece_inventory[name] = 0
+
+        # Set existing counts in the dictionary to 0
+        for piece in self._piece_inventory:
+            self._piece_inventory[piece] = 0
+
+        # Recount existing ChessPiece objects on chessboard
+        for piece in self._chessboard.values():
+            if piece:
+                self._piece_inventory[piece.get_name()] = self._piece_inventory[piece.get_name()] + 1
+
+    def display_piece_inventory(self):
+        """Displays the piece_inventory dictionary to the user"""
+        print(self._piece_inventory)
 
     def get_player_turn(self):
         """Returns the player who has the current turn"""
@@ -334,76 +553,128 @@ class ChessVar:
         """Returns the value of the game_state data member"""
         return self._game_state
 
-    def white_wins(self):
-        """Sets game_state data member to 'WHITE_WON'"""
-        self._game_state = 'WHITE_WON'
-
-    def black_wins(self):
-        """Sets game_state data member to 'BLACK_WON'"""
-        self._game_state = 'BLACK_WON'
-
-    def forfeit(self, player):
-        """
-        Allows the player who has the current turn to forfeit the game
-
-        :param player: A string representing the player wishing to forfeit.
-               Accepted input is either 'WHITE' or 'BLACK' (not case-sensitive)
-        :return: False if invalid forfeit. Updates the game_state data member appropriately if valid forfeit
-        """
-        player = player.upper()
-
-        if player == 'WHITE' and self._player_turn == 'WHITE':
-            self.black_wins()
-
-        elif player == 'BLACK' and self._player_turn == 'BLACK':
-            self.white_wins()
-
+    def current_player_wins(self):
+        """Sets game_state data member to 'WHITE_WON' if it is white's turn or 'BLACK_WON' if it is black's turn"""
+        if self._player_turn == 'WHITE':
+            self._game_state = 'WHITE_WON'
         else:
-            print("Please wait to forfeit until it is your turn.")
-            return False
+            self._game_state = 'BLACK_WON'
 
-    def make_move(self, current_square, destination):
+        # Display the game state to show who won
+        print(self.get_game_state())
+
+    def forfeit(self):
+        """Sets game_state data member to 'BLACK_WON' if it is white's turn or 'WHITE_WON' if it is black's turn"""
+        if self._player_turn == 'WHITE':
+            self._game_state = 'BLACK_WON'
+        else:
+            self._game_state = 'WHITE_WON'
+
+        # Display the game state to show who won
+        print(self.get_game_state())
+
+    def make_move(self, source, destination):
         """
-        Takes a piece's current square and proposed destination and moves the piece if it is a legal move
+        Takes a piece's source square and proposed destination and moves the piece if it is a legal move
 
-        :param current_square: a string representing the current grid location of the piece to be moved
+        :param source: a string representing the current grid location of the piece to be moved
                               Example: '2a'   - not case-sensitive
         :param destination: a string representing the proposed destination of the piece to be moved
                               Example: '3a'   - not case-sensitive
-        :return: No returns. Updates the chessboard dictionary if move is legal
+        :return: True if move is legal. False if move is illegal.
+                 Updates the chessboard dictionary if move is legal
         """
 
         # Convert entered string to lowercase to avoid case sensitivity problem
-        current_square = current_square.lower()
+        source = source.lower()
         destination = destination.lower()
 
-        if not self._chessboard[current_square]:
+        # Check if game has already been won
+        if self._game_state != 'UNFINISHED':
+            print('This game has already been won!')
+            print(self.get_game_state())
+            return False
+
+        # Check that source and destination entries are actually board spaces
+        # Store row and column values
+
+        source_column = source[0]
+        source_row = source[1]
+        destination_column = destination[0]
+        destination_row = destination[1]
+
+        if source_column < 'a' or source_column > 'h':
+            print("One or both of your move entries is invalid.")
+            return False
+
+        if destination_column < 'a' or destination_column > 'h':
+            print("One or both of your move entries is invalid.")
+            return False
+
+        if destination_row < '1' or destination_row > '8':
+            print("One or both of your move entries is invalid.")
+            return False
+
+        if source_row < '1' or source_row > '8':
+            print("One or both of your move entries is invalid.")
+            return False
+
+        # Check that a piece was selected
+        if not self._chessboard[source]:
             print("You didn't select a piece to move. Try a different move.")
             return False
 
-        if self._player_turn != self._chessboard[current_square].get_color():
+        # Check that the source and destination positions are different
+        if source == destination:
+            print("You didn't actually move the piece. Try a different move.")
+            return False
+
+        # Check that the player selected their own piece
+        if self._player_turn != self._chessboard[source].get_color():
             print("You can't move the other player's piece. Try a different move.")
             return False
 
-        if not self._chessboard[current_square].legal_move(current_square, destination):
+        # Determine if the selected piece can actually make the proposed move
+        if not self._chessboard[source].legal_move(source, destination):
             print("That move isn't legal for this piece. Try a different move.")
             return False
 
-        # Since the move is legal, make the move and change player_turn
-        self._chessboard[destination] = self._chessboard[current_square]
-        self._chessboard[current_square] = None
+        # Check that the player does not try to remove their own piece from the board
+        if self._chessboard[destination] and self._player_turn == self._chessboard[destination].get_color():
+            print("You can't remove your own piece from the board. Try a different move.")
+            return False
+
+        # If all previous tests pass, the move is legal
+        # Make the move and update the chessboard
+        self._chessboard[destination] = self._chessboard[source]
+        self._chessboard[source] = None
+
+        # See if the move was a winning move by updating the piece inventory and seeing if any class of ChessPiece was
+        # completely removed from the board
+        self.update_piece_inventory()
+        if 0 in self._piece_inventory.values():
+            self.current_player_wins()
+
+        # Give turn to the other player
         self.swap_player_turn()
 
-        # See if the move was a winning move
-
         return True
+
+    def make_move_and_display_board(self, source, destination):
+        """Calls the make_move and display_board methods if the user wants to automatically display the board"""
+        self.make_move(source, destination)
+        self.display_board()
 
 
 def main():
     game = ChessVar()
-    game.display_board()
-    print(game.make_move('2a', '7a'))
-    game.display_board()
+    game.make_move('e1', 'e2')
+    game.make_move('e1', 'g2')
+    game.make_move('d0', 'd2')
+    game.make_move('d2', 'i3')
+    game.make_move('e2', 'e3')
+    game.make_move('d7', 'd6')
+    game.make_move_and_display_board('e1', 'e2')
 
 
 if __name__ == '__main__':

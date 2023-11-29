@@ -5,12 +5,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_piece_init_get_methods(self):
 
-        pawn = Pawn('BLACK', 'A2')
-        knight = Knight('BLACK', 'A2')
-        bishop = Bishop('BLACK', 'A2')
-        rook = Rook('BLACK', 'A2')
-        queen = Queen('BLACK', 'A2')
-        king = King('BLACK', 'A2')
+        pawn = Pawn('BLACK')
+        knight = Knight('BLACK')
+        bishop = Bishop('BLACK')
+        rook = Rook('BLACK')
+        queen = Queen('BLACK')
+        king = King('BLACK')
 
         self.assertEqual(pawn.get_name(), 'BP')
         self.assertEqual(pawn.get_type(), 'PAWN')
@@ -36,18 +36,18 @@ class MyTestCase(unittest.TestCase):
 
         game = ChessVar()
 
-        self.assertFalse(game.forfeit('black'))
-        game.forfeit('white')
+        game.forfeit()
         self.assertEqual(game.get_game_state(), 'BLACK_WON')
 
     def test_make_move(self):
 
         game = ChessVar()
-        self.assertFalse(game.make_move('3a', '6a'))  # Try to move a piece from an empty square
-        self.assertFalse(game.make_move('7a', '6a')) # White tries to move Black's piece
-        game.make_move('2a', '3a')
+        self.assertFalse(game.make_move('a3', 'a6'))  # Try to move a piece from an empty square
+        self.assertFalse(game.make_move('a7', 'a6'))  # White tries to move Black's piece
+        self.assertFalse(game.make_move('d1', 'd2'))  # White tries to take their own piece
+        game.make_move('A2', 'a3')                    # Mix of cases should still work
         self.assertEqual(game.get_player_turn(),'BLACK')
-        self.assertFalse(game.make_move('3a', '4a'))  # Black tries to move White's piece
+        self.assertFalse(game.make_move('a3', 'a4'))  # Black tries to move White's piece
 
 
 if __name__ == '__main__':
