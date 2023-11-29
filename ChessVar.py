@@ -2,6 +2,11 @@
 # GitHub username: nolanreichkitzer
 # Date: 11/27/2023
 # Description: CS 162 - Portfolio Project
+#
+#              This module contains the ChessVar class that allows the user to play a chess game. There are
+#              additional classes used to generate the different chess pieces. The rules of this game are different
+#              from the normal rules. In this version, the winner is the first player to capture all of an opponent's
+#              pieces of one type. Also, castling, en passant, and pawn promotion are not allowed.
 
 class ChessPiece:
     """
@@ -24,13 +29,10 @@ class ChessPiece:
         Returns the type of chess piece
     get_name()
         Returns the name identifier of the chess piece
-    spaces_between_source_and_destination_clear(source, destination)
-        Determines if the spaces in between the source and destination squares are clear.
     """
 
-    def __init__(self, color, chess_var_object):
+    def __init__(self, color):
         self._color = color
-        self._chess_var_object = chess_var_object
         self._type = None
         self._name = None
 
@@ -46,87 +48,10 @@ class ChessPiece:
         """Returns the name identifier of the chess piece"""
         return self._name
 
-    def spaces_between_source_and_destination_clear(self, source, destination):
-        """
-        Determines if the spaces in between the source and destination squares are clear.
-
-        :param source: a string representing the current grid location of the piece to be moved
-        :param destination: a string representing the proposed destination of the piece to be moved
-        :return: True if the spaces are clear. False if any of the spaces are not clear.
-        """
-
-        # Store row and column values, use ord function to convert column character to ASCII integer
-        source_column = ord(source[0])
-        source_row = int(source[1])
-        destination_column = ord(destination[0])
-        destination_row = int(destination[1])
-
-        # Use ChessVar get_board method to return the chessboard dictionary to this class
-        chessboard = self._chess_var_object.get_board()
-
-        # Determine if there is a chess piece in between source square and destination square
-        # All chess pieces besides the Knight can not move through other pieces
-
-        # Vertical move forward (1 to 8)
-        if (source_column - destination_column) == 0 and (destination_row - source_row) > 0:
-            for row in range(1, destination_row - source_row):
-                if chessboard[chr(source_column) + str(source_row + row)]:
-                    return False
-            return True
-
-        # Vertical move backward (8 to 1)
-        if (source_column - destination_column) == 0 and (source_row - destination_row) > 0:
-            for row in range(1, source_row - destination_row):
-                if chessboard[chr(source_column) + str(source_row - row)]:
-                    return False
-            return True
-
-        # Horizontal move right (a to h)
-        if (source_row - destination_row) == 0 and (destination_column - source_column) > 0:
-            for column in range(1, destination_column - source_column):
-                if chessboard[chr(source_column + column) + str(source_row)]:
-                    return False
-            return True
-
-        # Horizontal move left (h to a)
-        if (source_row - destination_row) == 0 and (source_column - destination_column) > 0:
-            for column in range(1, source_column - destination_column):
-                if chessboard[chr(source_column - column) + str(source_row)]:
-                    return False
-            return True
-
-        # Diagonal move forward right (1 to 8) and (a to h)
-        if (destination_row - source_row) > 0 and (destination_column - source_column) > 0:
-            for square in range(1, destination_row - source_row):
-                if chessboard[chr(source_column + square) + str(source_row + square)]:
-                    return False
-            return True
-
-        # Diagonal move forward left (1 to 8) and (h to a)
-        if (destination_row - source_row) > 0 and (source_column - destination_column) > 0:
-            for square in range(1, destination_row - source_row):
-                if chessboard[chr(source_column - square) + str(source_row + square)]:
-                    return False
-            return True
-
-        # Diagonal move backward right (8 to 1) and (a to h)
-        if (source_row - destination_row) > 0 and (destination_column - source_column) > 0:
-            for square in range(1, source_row - destination_row):
-                if chessboard[chr(source_column + square) + str(source_row - square)]:
-                    return False
-            return True
-
-        # Diagonal move backward left (8 to 1) and (h to a)
-        if (source_row - destination_row) > 0 and (source_column - destination_column) > 0:
-            for square in range(1, source_row - destination_row):
-                if chessboard[chr(source_column - square) + str(source_row - square)]:
-                    return False
-            return True
-
 
 class Pawn(ChessPiece):
     """
-    A subclass used to represent a Pawn chess piece
+    A subclass of ChessPiece used to represent a Pawn
 
     Attributes
     ----------
@@ -136,18 +61,30 @@ class Pawn(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BP' for a black Pawn or 'WP' for white
+    chess_var_object : ChessVar class Object
+        ChessVar Object representing the chess game that the chess piece is being used in
+        The Pawn's legal_move method needs to access the chessboard data member from ChessVar
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
 
     def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+        super().__init__(color)
         self._type = 'PAWN'
         self._name = color[0] + self._type[0]
+        self._chess_var_object = chess_var_object
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
@@ -161,30 +98,49 @@ class Pawn(ChessPiece):
 
         if self._color == 'WHITE':
 
-            # White can only move from 2 to 8, and can move 2 spaces forward if source space is 2
-            if source_row == 2 and (destination_row - source_row) <= 2 and \
-                    (destination_column - source_column) == 0 and \
-                    self.spaces_between_source_and_destination_clear(source, destination):
+            # White can only move from row 2 to 8, and can move 2 spaces forward if source space is on row 2
+            if source_row == 2 and (destination_row - source_row) == 2 and \
+                    (destination_column - source_column) == 0:
                 return True
 
-            # Otherwise, Pawns can only move forward 1 space unless an enemy is occupying the intended space
-            elif (destination_row - source_row) == 1 and abs(destination_column - source_column) == 0 \
-                    and chessboard[destination] and chessboard[destination].get_color == 'BLACK':
+            # Normally, Pawns can only move forward 1 space and can't capture while moving forward
+            elif (destination_row - source_row) == 1 and (destination_column - source_column) == 0 \
+                    and not chessboard[destination]:
                 return True
 
-            # Pawn can only move forward 1 space diagonally if it is capturing an enemy piece
+            # Pawn can move forward 1 space diagonally if it is capturing an enemy piece
             elif (destination_row - source_row) == 1 and abs(destination_column - source_column) == 1 \
-                    and chessboard[destination] and chessboard[destination].get_color == 'BLACK':
+                    and chessboard[destination] and chessboard[destination].get_color() == 'BLACK':
                 return True
 
+            else:
+                return False
 
+        # Determine legal moves for Black pawn
+        else:
 
-        # Black pawn can only move from 7 to 1, and can move 2 spaces forward if source space is 7
+            # Black can only move from row 7 to 1, and can move 2 spaces forward if source space is on row 7
+            if source_row == 7 and (source_row - destination_row) == 2 and \
+                    (destination_column - source_column) == 0:
+                return True
+
+            # Normally, Pawns can only move forward 1 space and can't capture while moving forward
+            elif (source_row - destination_row) == 1 and (destination_column - source_column) == 0 \
+                    and not chessboard[destination]:
+                return True
+
+            # Pawn can move forward 1 space diagonally if it is capturing an enemy piece
+            elif (source_row - destination_row) == 1 and abs(destination_column - source_column) == 1 \
+                    and chessboard[destination] and chessboard[destination].get_color() == 'WHITE':
+                return True
+
+            else:
+                return False
 
 
 class Knight(ChessPiece):
     """
-    A subclass used to represent a KNIGHT chess piece
+    A subclass of ChessPiece used to represent a Knight
 
     Attributes
     ----------
@@ -194,34 +150,49 @@ class Knight(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BN' for a black Knight or 'WN' for white
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
 
-    def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+    def __init__(self, color):
+        super().__init__(color)
         self._type = 'KNIGHT'
         self._name = color[0] + 'N'
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
         destination_column = ord(destination[0])
         destination_row = int(destination[1])
 
-        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
-        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+        # Determine legal moves for Knights
+
+        # Knights can move forward/backward 2 spaces and left/right 1 space
+        if abs(destination_row - source_row) == 2 and abs(destination_column - source_column) == 1:
             return True
+
+        # Or Knights can move forward/backward one space and left/right 2 spaces
+        elif abs(destination_row - source_row) == 1 and abs(destination_column - source_column) == 2:
+            return True
+
         else:
             return False
 
 
 class Bishop(ChessPiece):
     """
-    A subclass used to represent a Bishop chess piece
+    A subclass of ChessPiece used to represent a Bishop
 
     Attributes
     ----------
@@ -231,26 +202,36 @@ class Bishop(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BB' for a black Bishop or 'WB' for white
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
 
-    def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+    def __init__(self, color):
+        super().__init__(color)
         self._type = 'BISHOP'
         self._name = color[0] + self._type[0]
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
         destination_column = ord(destination[0])
         destination_row = int(destination[1])
 
-        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
-        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+        # Determine legal moves for Bishops
+
+        # Bishops can move diagonally any number of spaces in either direction
+        if abs(destination_row - source_row) == abs(destination_column - source_column):
             return True
         else:
             return False
@@ -258,7 +239,7 @@ class Bishop(ChessPiece):
 
 class Rook(ChessPiece):
     """
-    A subclass used to represent a Rook chess piece
+    A subclass of ChessPiece used to represent a Rook
 
     Attributes
     ----------
@@ -268,26 +249,36 @@ class Rook(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BR' for a black Rook or 'WR' for white
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
 
-    def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+    def __init__(self, color):
+        super().__init__(color)
         self._type = 'ROOK'
         self._name = color[0] + self._type[0]
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
         destination_column = ord(destination[0])
         destination_row = int(destination[1])
 
-        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
-        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+        # Determine legal moves for Rooks
+
+        # Rooks can move vertically any number of spaces or horizontally any number of spaces
+        if (destination_row - source_row) == 0 or (destination_column - source_column) == 0:
             return True
         else:
             return False
@@ -295,7 +286,7 @@ class Rook(ChessPiece):
 
 class Queen(ChessPiece):
     """
-    A subclass used to represent a Queen chess piece
+    A subclass of ChessPiece used to represent a Queen
 
     Attributes
     ----------
@@ -305,25 +296,37 @@ class Queen(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BQ' for a black Queen or 'WQ' for white
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
-    def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+    def __init__(self, color):
+        super().__init__(color)
         self._type = 'QUEEN'
         self._name = color[0] + self._type[0]
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
         destination_column = ord(destination[0])
         destination_row = int(destination[1])
 
-        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
-        if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
+        # Determine legal moves for Queen
+
+        # Queen can move vertically, horizontally, or diagonally any number of spaces in any direction
+        if abs(destination_row - source_row) == abs(destination_column - source_column):
+            return True
+        elif (destination_row - source_row) == 0 or (destination_column - source_column) == 0:
             return True
         else:
             return False
@@ -331,7 +334,7 @@ class Queen(ChessPiece):
 
 class King(ChessPiece):
     """
-    A subclass used to represent a King chess piece
+    A subclass of ChessPiece used to represent a King
 
     Attributes
     ----------
@@ -341,25 +344,33 @@ class King(ChessPiece):
         Represents the type of ChessPiece (same as the name of this class)
     name : string
         Represents a name identifier for the chess piece. 'BK' for a black King or 'WK' for white
+
     Methods
     -------
-
+    legal_move(source, destination)
+        Determines if the proposed move is legal for this type of chess piece
     """
 
-    def __init__(self, color, chess_var_object):
-        super().__init__(color, chess_var_object)
+    def __init__(self, color):
+        super().__init__(color)
         self._type = 'KING'
         self._name = color[0] + self._type[0]
 
     def legal_move(self, source, destination):
+        """
+        Determines if the proposed move is legal for this type of chess piece
 
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the move is legal. False if the move is illegal.
+        """
         # Store row and column values, use ord function to convert column character to ASCII integer
         source_column = ord(source[0])
         source_row = int(source[1])
         destination_column = ord(destination[0])
         destination_row = int(destination[1])
 
-        # King can move one space in any direction, so use absolute value and take difference between start/end spaces
+        # King can move one space in any direction
         if abs(destination_column - source_column) <= 1 and abs(destination_row - source_row) <= 1:
             return True
         else:
@@ -378,7 +389,8 @@ class ChessVar:
         set_board method
     piece_inventory : dictionary
         A dictionary representing the piece inventory with piece names as keys and piece counts as values.
-        Dictionary is initialized to empty dictionary and filled after the chessboard is set using the update_
+        Dictionary is initialized to empty dictionary and filled after the chessboard is set using the
+        update_piece_inventory method
     player_turn : string
         Represents who has the current turn. Data member will either be 'WHITE' or 'BLACK' and is initialized to 'WHITE'
     game_state : string
@@ -411,6 +423,8 @@ class ChessVar:
         Takes a piece's source square and proposed destination as strings and moves the piece if it is a legal move
     make_move_and_display_board(source, destination):
         Calls the make_move and display_board methods if the user wants to automatically display the board
+    spaces_between_source_and_destination_clear(source, destination)
+        Determines if the spaces in between the source and destination squares are clear.
     """
 
     def __init__(self):
@@ -435,44 +449,44 @@ class ChessVar:
             self._chessboard[str(column) + '7'] = Pawn('BLACK', self)
 
         # Generate Black Knights
-        self._chessboard['b8'] = Knight('BLACK', self)
-        self._chessboard['g8'] = Knight('BLACK', self)
+        self._chessboard['b8'] = Knight('BLACK')
+        self._chessboard['g8'] = Knight('BLACK')
 
         # Generate Black Bishops
-        self._chessboard['c8'] = Bishop('BLACK', self)
-        self._chessboard['f8'] = Bishop('BLACK', self)
+        self._chessboard['c8'] = Bishop('BLACK')
+        self._chessboard['f8'] = Bishop('BLACK')
 
         # Generate Black Rooks
-        self._chessboard['a8'] = Rook('BLACK', self)
-        self._chessboard['h8'] = Rook('BLACK', self)
+        self._chessboard['a8'] = Rook('BLACK')
+        self._chessboard['h8'] = Rook('BLACK')
 
         # Generate Black Queen
-        self._chessboard['d8'] = Queen('BLACK', self)
+        self._chessboard['d8'] = Queen('BLACK')
 
         # Generate Black King
-        self._chessboard['e8'] = King('BLACK', self)
+        self._chessboard['e8'] = King('BLACK')
 
         # Generate White Pawns
         for column in columns:
             self._chessboard[str(column) + '2'] = Pawn('WHITE', self)
 
         # Generate White Knights
-        self._chessboard['b1'] = Knight('WHITE', self)
-        self._chessboard['g1'] = Knight('WHITE', self)
+        self._chessboard['b1'] = Knight('WHITE')
+        self._chessboard['g1'] = Knight('WHITE')
 
         # Generate White Bishops
-        self._chessboard['c1'] = Bishop('WHITE', self)
-        self._chessboard['f1'] = Bishop('WHITE', self)
+        self._chessboard['c1'] = Bishop('WHITE')
+        self._chessboard['f1'] = Bishop('WHITE')
 
         # Generate White Rooks
-        self._chessboard['a1'] = Rook('WHITE', self)
-        self._chessboard['h1'] = Rook('WHITE', self)
+        self._chessboard['a1'] = Rook('WHITE')
+        self._chessboard['h1'] = Rook('WHITE')
 
         # Generate White Queen
-        self._chessboard['d1'] = Queen('WHITE', self)
+        self._chessboard['d1'] = Queen('WHITE')
 
         # Generate White King
-        self._chessboard['e1'] = King('WHITE', self)
+        self._chessboard['e1'] = King('WHITE')
 
     def get_board(self):
         """Returns the chessboard dictionary"""
@@ -583,9 +597,10 @@ class ChessVar:
                               Example: '3a'   - not case-sensitive
         :return: True if move is legal. False if move is illegal.
                  Updates the chessboard dictionary if move is legal
+                 Updates the piece_inventory dictionary if a piece was taken
         """
 
-        # Convert entered string to lowercase to avoid case sensitivity problem
+        # Convert entered string to lowercase to avoid case sensitivity problems
         source = source.lower()
         destination = destination.lower()
 
@@ -596,26 +611,21 @@ class ChessVar:
             return False
 
         # Check that source and destination entries are actually board spaces
-        # Store row and column values
+        # Entries can only be 2 character strings
+        if len(source) != 2 or len(destination) != 2:
+            print("One or both of your move entries is invalid.")
+            return False
 
+        # Store row and column values
         source_column = source[0]
         source_row = source[1]
         destination_column = destination[0]
         destination_row = destination[1]
 
-        if source_column < 'a' or source_column > 'h':
-            print("One or both of your move entries is invalid.")
-            return False
-
-        if destination_column < 'a' or destination_column > 'h':
-            print("One or both of your move entries is invalid.")
-            return False
-
-        if destination_row < '1' or destination_row > '8':
-            print("One or both of your move entries is invalid.")
-            return False
-
-        if source_row < '1' or source_row > '8':
+        # Check that source and destination entries are actually board spaces
+        # Columns must be between a and h (inclusive). Rows must be between 1 and 8 (inclusive).
+        if source_column < 'a' or source_column > 'h' or destination_column < 'a' or destination_column > 'h' or \
+                destination_row < '1' or destination_row > '8' or source_row < '1' or source_row > '8':
             print("One or both of your move entries is invalid.")
             return False
 
@@ -624,19 +634,25 @@ class ChessVar:
             print("You didn't select a piece to move. Try a different move.")
             return False
 
-        # Check that the source and destination positions are different
-        if source == destination:
-            print("You didn't actually move the piece. Try a different move.")
-            return False
-
         # Check that the player selected their own piece
         if self._player_turn != self._chessboard[source].get_color():
             print("You can't move the other player's piece. Try a different move.")
             return False
 
+        # Check that the source and destination positions are different
+        if source == destination:
+            print("You didn't actually move the piece. Try a different move.")
+            return False
+
         # Determine if the selected piece can actually make the proposed move
         if not self._chessboard[source].legal_move(source, destination):
             print("That move isn't legal for this piece. Try a different move.")
+            return False
+
+        # Determine if the player tried to move through other chess pieces. Only the Knight can do this.
+        if self._chessboard[source].get_type() != 'KNIGHT' and \
+                not self.spaces_between_source_and_destination_clear(source, destination):
+            print("You tried to move through other chess pieces. Only the Knight can do that. Try a different move")
             return False
 
         # Check that the player does not try to remove their own piece from the board
@@ -665,17 +681,76 @@ class ChessVar:
         self.make_move(source, destination)
         self.display_board()
 
+    def spaces_between_source_and_destination_clear(self, source, destination):
+        """
+        Determines if the spaces in between the source and destination squares are clear.
 
-def main():
-    game = ChessVar()
-    game.make_move('e1', 'e2')
-    game.make_move('e1', 'g2')
-    game.make_move('d0', 'd2')
-    game.make_move('d2', 'i3')
-    game.make_move('e2', 'e3')
-    game.make_move('d7', 'd6')
-    game.make_move_and_display_board('e1', 'e2')
+        :param source: a string representing the current grid location of the piece to be moved
+        :param destination: a string representing the proposed destination of the piece to be moved
+        :return: True if the spaces are clear. False if any of the spaces are not clear.
+        """
 
+        # Store row and column values, use ord function to convert column character to ASCII integer
+        source_column = ord(source[0])
+        source_row = int(source[1])
+        destination_column = ord(destination[0])
+        destination_row = int(destination[1])
 
-if __name__ == '__main__':
-    main()
+        # Determine if there is a chess piece in between source square and destination square
+        # The Knight is the only piece that can move through (jump over) other chess pieces
+
+        # Vertical move forward (1 to 8)
+        if (source_column - destination_column) == 0 and (destination_row - source_row) > 0:
+            for row in range(1, destination_row - source_row):
+                if self._chessboard[chr(source_column) + str(source_row + row)]:
+                    return False
+            return True
+
+        # Vertical move backward (8 to 1)
+        if (source_column - destination_column) == 0 and (source_row - destination_row) > 0:
+            for row in range(1, source_row - destination_row):
+                if self._chessboard[chr(source_column) + str(source_row - row)]:
+                    return False
+            return True
+
+        # Horizontal move right (a to h)
+        if (source_row - destination_row) == 0 and (destination_column - source_column) > 0:
+            for column in range(1, destination_column - source_column):
+                if self._chessboard[chr(source_column + column) + str(source_row)]:
+                    return False
+            return True
+
+        # Horizontal move left (h to a)
+        if (source_row - destination_row) == 0 and (source_column - destination_column) > 0:
+            for column in range(1, source_column - destination_column):
+                if self._chessboard[chr(source_column - column) + str(source_row)]:
+                    return False
+            return True
+
+        # Diagonal move forward right (1 to 8) and (a to h)
+        if (destination_row - source_row) > 0 and (destination_column - source_column) > 0:
+            for square in range(1, destination_row - source_row):
+                if self._chessboard[chr(source_column + square) + str(source_row + square)]:
+                    return False
+            return True
+
+        # Diagonal move forward left (1 to 8) and (h to a)
+        if (destination_row - source_row) > 0 and (source_column - destination_column) > 0:
+            for square in range(1, destination_row - source_row):
+                if self._chessboard[chr(source_column - square) + str(source_row + square)]:
+                    return False
+            return True
+
+        # Diagonal move backward right (8 to 1) and (a to h)
+        if (source_row - destination_row) > 0 and (destination_column - source_column) > 0:
+            for square in range(1, source_row - destination_row):
+                if self._chessboard[chr(source_column + square) + str(source_row - square)]:
+                    return False
+            return True
+
+        # Diagonal move backward left (8 to 1) and (h to a)
+        if (source_row - destination_row) > 0 and (source_column - destination_column) > 0:
+            for square in range(1, source_row - destination_row):
+                if self._chessboard[chr(source_column - square) + str(source_row - square)]:
+                    return False
+            return True
