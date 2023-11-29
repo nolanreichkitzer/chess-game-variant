@@ -10,7 +10,8 @@
 
 class ChessPiece:
     """
-    A class used to represent a Chess piece
+    A class used to represent a Chess piece.  Subclasses of ChessPiece are Pawn, Knight, Bishop, Rook, Queen, and King.
+    The subclasses are called by the ChessVar class to populate the chessboard.
 
     Attributes
     ----------
@@ -379,18 +380,26 @@ class King(ChessPiece):
 
 class ChessVar:
     """
-    A class used to represent a Chess game
+    A class used to represent a Chess game. The game is a variant of Chess with different rules.
+
+    The starting position for the game is the normal starting position for standard chess. This class keeps track of
+    the player's turn with white having the first turn. The winner is the first player to capture all of an opponent's
+    pieces of one type. The king isn't a special piece in this game, and there is no check or checkmate. Pieces move
+    and capture the same as in normal chess, except that there is no castling, en passant, or pawn promotion.
+
+    Locations on the board are specified using "algebraic notation", with columns labeled a-h and rows labeled 1-8.
+
 
     Attributes
     ----------
     chessboard : dictionary
         A dictionary representing the chessboard grid. Keys are the chessboard grid squares, values are ChessPiece
         objects occupying the squares. Dictionary is initialized to the starting state of a normal chess game using the
-        set_board method
+        set_board method and will be populated by ChessPiece objects.
     piece_inventory : dictionary
         A dictionary representing the piece inventory with piece names as keys and piece counts as values.
         Dictionary is initialized to empty dictionary and filled after the chessboard is set using the
-        update_piece_inventory method
+        update_piece_inventory method. This dictionary keeps track of white and black pieces separately.
     player_turn : string
         Represents who has the current turn. Data member will either be 'WHITE' or 'BLACK' and is initialized to 'WHITE'
     game_state : string
@@ -417,7 +426,7 @@ class ChessVar:
         Returns the value of the game_state data member
     current_player_wins()
         Sets game_state data member to 'WHITE_WON' if it is white's turn or 'BLACK_WON' if it is black's turn
-    forfeit(player)
+    forfeit()
         Sets game_state data member to 'BLACK_WON' if it is white's turn or 'WHITE_WON' if it is black's turn
     make_move(source, destination)
         Takes a piece's source square and proposed destination as strings and moves the piece if it is a legal move
