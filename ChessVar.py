@@ -588,13 +588,14 @@ class ChessVar:
 
     def forfeit(self):
         """Sets game_state data member to 'BLACK_WON' if it is white's turn or 'WHITE_WON' if it is black's turn"""
-        if self._player_turn == 'WHITE':
-            self._game_state = 'BLACK_WON'
-        else:
-            self._game_state = 'WHITE_WON'
+        if self._game_state == 'UNFINISHED':
+            if self._player_turn == 'WHITE':
+                self._game_state = 'BLACK_WON'
+            else:
+                self._game_state = 'WHITE_WON'
 
-        # Display the game state to show who won
-        print(self.get_game_state())
+            # Display the game state to show who won
+            print(self.get_game_state())
 
     def make_move(self, source, destination):
         """
