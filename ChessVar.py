@@ -1,9 +1,7 @@
 # Author: Nolan Reichkitzer
 # GitHub username: nolanreichkitzer
 # Date: 11/27/2023
-# Description: CS 162 - Portfolio Project
-#
-#              This module contains the ChessVar class that allows the user to play a chess game. There are
+# Description: This module contains the ChessVar class that allows the user to play a chess game. There are
 #              additional classes used to generate the different chess pieces. The rules of this game are different
 #              from the normal rules. In this version, the winner is the first player to capture all of an opponent's
 #              pieces of one type. Also, castling, en passant, and pawn promotion are not allowed.

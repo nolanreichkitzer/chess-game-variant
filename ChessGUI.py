@@ -1,9 +1,7 @@
 # Author: Nolan Reichkitzer
 # GitHub username: nolanreichkitzer
-# Date: 12/12/2023
-# Description: CS 162 - Portfolio Project
-#
-#              This module contains the graphical user interface for the chess game defined in ChessVar.
+# Date: 12/13/2023
+# Description: This module contains the graphical user interface for the chess game defined in ChessVar.
 #              Pygame is employed to render the graphics of the game. The rules of this game are different
 #              from the normal rules. In this version, the winner is the first player to capture all of an
 #              opponent's pieces of one type. Also, castling, en passant, and pawn promotion are not allowed.

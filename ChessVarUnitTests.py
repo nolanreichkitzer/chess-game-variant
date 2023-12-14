@@ -1,5 +1,10 @@
+# Author: Nolan Reichkitzer
+# GitHub username: nolanreichkitzer
+# Date: 11/27/2023
+# Description: Unit Tests for ChessVar.py
+
 import unittest
-from ChessVar import ChessVar, ChessPiece, Pawn, Knight, Bishop, Rook, Queen, King
+from ChessVar import ChessVar, Pawn, Knight, Bishop, Rook, Queen, King
 
 class MyTestCase(unittest.TestCase):
 

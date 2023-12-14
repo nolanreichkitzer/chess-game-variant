@@ -1,33 +1,53 @@
-# portfolio-project
+# Chess Game Variant
 
-**Remember that this project cannot be submitted late.**
-
-Write a class named **ChessVar** for playing an abstract board game that is a variant of chess. The following explanation of the rules assumes some familiarity with the rules of chess - specifically how the pieces move and capture. If you have any questions about those rules, please don't hesitate to ask.
+This repository contains classes and a graphical user interface for playing a board game that is a variant of chess. The following explanation of the rules assumes some familiarity with the rules of chess - specifically how the pieces move and capture.
 
 The starting position for the game is the normal starting position for standard chess.
 
-You will need to keep track of which player's turn it is. As in standard chess, white moves first. **The winner is the first player to capture all of an opponent's pieces of one type**, for example capturing all of the opponent's knights (of which there are two) would win the game, or all of the opponent's pawns (of which there are eight), or all of the opponent's kings (of which there is only one), etc. The king isn't a special piece in this game - there is no check or checkmate. Pieces move and capture the same as in standard chess, except that there is no castling, en passant, or pawn promotion. As in standard chess, each pawn should be able to move two spaces forward on its first move (but not on subsequent moves).
+As in standard chess, white moves first. **The winner is the first player to capture all of an opponent's pieces of one type**, for example capturing all of the opponent's knights (of which there are two) would win the game, or all of the opponent's pawns (of which there are eight), or all of the opponent's kings (of which there is only one), etc. The king isn't a special piece in this game - there is no check or checkmate. Pieces move and capture the same as in standard chess, except that there is no castling, en passant, or pawn promotion. As in standard chess, each pawn can move two spaces forward on its first move (but not on subsequent moves).
 
-Locations on the board will be specified using "algebraic notation", with columns labeled a-h and rows labeled 1-8, as shown in this diagram:
+Locations on the board are specified using "algebraic notation", with columns labeled a-h and rows labeled 1-8, as shown in this diagram:
 
 ![starting position for game](starting_position.png "starting position for game")
 
-You're not required to have a function that prints the board, but you will probably find it very useful for testing purposes.
+**Repository contains the following files:**
 
-Your ChessVar class must include the following:
-* An **init method** that initializes any data members
-* A method called **get_game_state** that just returns 'UNFINISHED', 'WHITE_WON', or 'BLACK_WON'.
-* A method called **make_move** that takes two parameters - strings that represent the square moved from and the square moved to.  For example, make_move('b3', 'c4').  If the square being moved from does not contain a piece belonging to the player whose turn it is, or if the indicated move is not legal, or if the game has already been won, then it should **just return False**.  Otherwise it should make the indicated move, remove any captured piece, update the game state if necessary, update whose turn it is, and return True.
+ChessVar.py - Contains the logic for the chess game
+ChessVarUnitTests.py - Contains unit tests for ChessVar.py
+ChessGUI.py - Contains the code used to run the game in Pygame
+images - Contains images used for the chess pieces in ChessGUI
 
-Feel free to add whatever other classes, methods, or data members you want.  All data members of a class must be private.  Every class should have an init method that initializes all of the data members for that class.
 
-For representing the game board, there are other options, but the simplest choice might be to use an 8x8 list of lists (a list of 8 elements, where each of those elements is itself a list of 8 elements). Then you could access a specific square of the board like this: game_board[3][0].
+**Scenarios**
 
-Here's a very simple example of how the class could be used:
-```
-game = ChessVar()
-move_result = game.make_move('a2', 'a4')
-game.make_move('g1', 'f1')
-state = game.get_game_state()
-```
-The file must be named: **ChessVar.py**
+**Initializing the ChessVar class**
+
+The ChessVar class has the following data members: chessboard, piece_inventory, player_turn, and game_state.
+
+**chessboard** is a dictionary representing the chessboard grid. The keys are the chessboard grid squares, and the values are the ChessPiece objects occupying the squares. Empty squares have values of None. This dictionary is initialized to the starting state of a normal chess game using the set_board method and will be populated by ChessPiece objects.
+
+**piece_inventory** is a dictionary representing the piece inventory with piece names as keys and piece counts as values. It is initialized to an empty dictionary and is filled after the chessboard is set using the update_piece_inventory method. This dictionary keeps track of white and black pieces separately.
+
+**player_turn** represents who has the current turn. Data member will either be 'WHITE' or 'BLACK' and is initialized to 'WHITE'.
+
+**game_state** represents the status of the game. Data member is initialized to 'UNFINISHED' and will be set to 'WHITE_WON' if white makes a winning move or 'BLACK_WON' if black makes a winning move.
+
+
+**Keeping track of turn order**
+Turn order is tracked using the ChessVar player_turn data member. When a legal move is performed, make_move will call the swap_player_turn method to switch player_turn from 'WHITE' to 'BLACK' and vice versa. Swap_player_turn is not called if the proposed move is illegal.
+
+
+**Keeping track of the current board position**
+The current board position is tracked using the ChessVar chessboard data member. It is a dictionary where the keys are the chessboard grid squares, and the values are the ChessPiece objects occupying the squares. Empty squares have values of None. When a legal move is performed, make_move takes the source square coordinate and replaces the destination square value with the source square's value. The source square's value is then changed to None.
+
+
+**Determining if a regular move is valid**
+The make_move method determines if a move is valid using a variety of conditional logic. It takes the source and destination square coordinates and determines if the player is moving out of turn, if the source and destination coordinates are actually valid, and a variety of other conditions. To determine if a piece can make a certain move. The ChessPiece subclasses have their own legal_move methods. Legal_move returns True if the ChessPiece is capable of making the proposed move. After that, make_move calls a different method to determine if the proposed move would cause the chess piece to move through other pieces. The Knight is the only piece that can do this.
+
+
+**Determining if a capture is valid**
+A capture is valid if the proposed move is legal and if the destination square contains the opponent's piece. The Pawn legal_move method contains additional code for pawn captures since they can only capture diagonally but cannot normally move in that way.
+
+
+**Determining the current state of the game**
+When a legal move is made, make_move calls the update_piece_inventory dictionary which recounts the pieces left on the board. If any piece is at 0, the game_state data member is changed to the appropriate victor.
