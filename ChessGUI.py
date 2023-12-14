@@ -291,7 +291,7 @@ def animate_move(player_clicks, screen, chessboard, clock, moved_piece, removed_
         # Draw moving piece
         screen.blit(IMAGES[moved_piece], pygame.Rect(column * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(frame_count / 0.5)
 
 
 if __name__ == '__main__':

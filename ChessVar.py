@@ -101,7 +101,7 @@ class Pawn(ChessPiece):
 
             # White can only move from row 2 to 8, and can move 2 spaces forward if source space is on row 2
             if source_row == 2 and (destination_row - source_row) == 2 and \
-                    (destination_column - source_column) == 0:
+                    (destination_column - source_column) == 0 and not chessboard[destination]:
                 return True
 
             # Normally, Pawns can only move forward 1 space and can't capture while moving forward
@@ -122,7 +122,7 @@ class Pawn(ChessPiece):
 
             # Black can only move from row 7 to 1, and can move 2 spaces forward if source space is on row 7
             if source_row == 7 and (source_row - destination_row) == 2 and \
-                    (destination_column - source_column) == 0:
+                    (destination_column - source_column) == 0 and not chessboard[destination]:
                 return True
 
             # Normally, Pawns can only move forward 1 space and can't capture while moving forward
