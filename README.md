@@ -20,6 +20,15 @@ ChessGUI.py - Contains the code used to run the game in Pygame
 
 images - Contains images used for the chess pieces in ChessGUI
 
+&nbsp;
+&nbsp;
+
+**Running the game**
+
+To use the graphical user interface, clone this repository and run the ChessGUI.py file in your IDE of choice.
+
+&nbsp;
+&nbsp;
 
 **ChessVar Code Description**
 
@@ -34,7 +43,8 @@ The ChessVar class has the following data members: chessboard, piece_inventory, 
 
 **game_state** represents the status of the game. Data member is initialized to 'UNFINISHED' and will be set to 'WHITE_WON' if white makes a winning move or 'BLACK_WON' if black makes a winning move.
 
-
+&nbsp;
+&nbsp;
 
 **Keeping track of turn order**
 
